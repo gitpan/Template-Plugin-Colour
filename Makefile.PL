@@ -1,0 +1,23 @@
+use ExtUtils::MakeMaker;
+
+my %opts = (
+    NAME         => 'Template::Plugin::Colour',
+    VERSION_FROM => 'lib/Template/Plugin/Colour.pm',
+    PMLIBDIRS    => [ 'lib' ],
+    PREREQ_PM    => { 
+        Template => 2.14,
+    },
+    dist         => {
+        PREOP => 'pod2text lib/Template/Plugin/Colour.pm > README',
+        COMPRESS => 'gzip',
+        SUFFIX   => 'gz',
+    },
+);
+
+if ($ExtUtils::MakeMaker::VERSION >= 5.43) {
+    $opts{ AUTHOR   } = 'Andy Wardley <abw@cpan.org>';
+    $opts{ ABSTRACT } = 'Template plugin for colour manipulation',
+}
+
+WriteMakefile( %opts );
+

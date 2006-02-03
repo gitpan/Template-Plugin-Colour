@@ -1,0 +1,14 @@
+lib/Template/Plugin/Color.pm
+lib/Template/Plugin/Color/HSV.pm
+lib/Template/Plugin/Color/RGB.pm
+lib/Template/Plugin/Colour.pm
+lib/Template/Plugin/Colour/HSV.pm
+lib/Template/Plugin/Colour/RGB.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+t/color.t
+t/colour.t
+t/hsv.t
+t/rgb.t
+META.yml                                 Module meta-data (added by MakeMaker)
