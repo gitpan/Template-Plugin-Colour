@@ -1,221 +1,13 @@
-#============================================================= -*-Perl-*-
-#
-# Template::Plugin::Colour::HSV
-#
-# DESCRIPTION
-#   Template Toolkit plugin for representing colours using the HSV
-#   (Hue, Saturation, Value) colour space.
-#
-# AUTHOR
-#   Andy Wardley   <abw@cpan.org>
-#
-# COPYRIGHT
-#   Copyright (C) 2006 Andy Wardley.  All Rights Reserved.
-#
-#   This module is free software; you can redistribute it and/or
-#   modify it under the same terms as Perl itself.
-#
-# REVISION
-#   $Revision: 6 $
-#
-#============================================================================
-
 package Template::Plugin::Colour::HSV;
 
-use strict;
-use warnings;
-use base 'Template::Plugin::Colour';
-
-our $VERSION = sprintf("2.%03d", q$Revision: 6 $ =~ /(\d+)/);
-our $THROW   = 'Colour.HSV';
-
-use constant HUE => 0;
-use constant SAT => 1;
-use constant VAL => 2;
-
-*sat  = \&saturation;
-*val  = \&value;
-
+use Template::Colour::Class
+    version => 2.10,
+    base    => 'Template::Colour::HSV Template::Plugin';
 
 sub new {
-    my ($proto, $context, @args) = @_;
-    my ($class, $self);
-
-    if ($class = ref $proto) {
-        $self = bless [@$proto], $class;
-    }
-    else {
-        $self = bless [0, 0, 0], $proto;
-    }
-    $self->hsv(@args) if @args;
-    return $self;
-}
-
-
-sub copy {
-    my $self = shift;
-    my $args = @_ && ref $_[0] eq 'HASH' ? shift : { @_ };
-
-    # default HSV to $self values.  Note that we use the longer
-    # form of 'saturation' and 'value', allowing the user to 
-    # specify the shorter form of 'sat' or 'val' which gets 
-    # detected before the longer 'saturation' and 'value' in 
-    # the hsv() method below
-    $args->{ hue } = $self->[HUE] 
-        unless defined $args->{ hue };
-    $args->{ saturation } = $self->[SAT] 
-        unless defined $args->{ saturation };
-    $args->{ value } = $self->[VAL] 
-        unless defined $args->{ value };
-
-    $self->new('no context', $args);
-}
-
-sub hsv {
-    my $self = shift;
-    my $hsv;
-
-    if (@_ == 1) {
-        # single argument is a list or hash ref
-        $hsv = shift;
-    }
-    elsif (@_ == 3) {
-        # three arguments provide hue, saturation, and value components
-        $hsv = [ @_ ];
-    }
-    elsif (@_ == 6) {
-        # list of six items is hue => $h, saturation => $s, value => $v
-        $hsv = { @_ };
-    }
-    elsif (@_) {
-        # any other number of arguments is an error 
-        return $self->error("invalid hsv parameter(s): ", join(', ', @_));
-    }
-    else {
-        # return $self when called with no arguments
-        return $self;
-    }
-
-    # at this point $hsv is a reference to a list or hash, or hsv value
-
-    if (UNIVERSAL::isa($hsv, 'HASH')) {
-        # convert hash ref to list
-        $hsv->{ sat } = $hsv->{ saturation } unless exists $hsv->{ sat };
-        $hsv->{ val } = $hsv->{ value      } unless exists $hsv->{ val };
-        $hsv = [  map {
-            defined $hsv->{ $_ } 
-            ? $hsv->{ $_ } 
-            : return $self->error("missing $_ parameter");
-        } qw( hue sat val ) ];
-    }
-    elsif (UNIVERSAL::isa($hsv, 'ARRAY')) {
-        # $hsv list is ok as it is
-    }
-    else {
-        # anything else is Not Allowed
-        return $self->error("invalid hsv parameter: $hsv");
-    }
-
-    # sanity checks: hue is in range 0-359 (circular), saturation 
-    # and value in the range 0-255 (clipped)
-    $hsv->[HUE] %= 360;
-    $hsv->[HUE] += 360 if $hsv->[HUE] < 0;
-    $hsv->[SAT]  =   0 if $hsv->[SAT] < 0;
-    $hsv->[SAT]  = 255 if $hsv->[SAT] > 255;
-    $hsv->[VAL]  =   0 if $hsv->[VAL] < 0;
-    $hsv->[VAL]  = 255 if $hsv->[VAL] > 255;
-
-    # update self with new colour
-    @$self = @$hsv;
-
-    return $self;
-}
-
-
-sub hue { 
-    my $self = shift;
-    if (@_) {
-        my $hue = shift;
-        $self->[HUE] = $hue % 360;
-    }
-    return $self->[HUE];
-}
-
-
-sub saturation { 
-    my $self = shift;
-    if (@_) {
-        my $sat = shift;
-        $sat = 0   if $sat < 0;
-        $sat = 255 if $sat > 255;
-        $self->[SAT] = $sat;
-    }
-    return $self->[SAT];
-}
-
-
-sub value { 
-    my $self = shift;
-    if (@_) {
-        my $val = shift;
-        $val = 0   if $val < 0;
-        $val = 255 if $val > 255;
-        $self->[VAL] = $val;
-    }
-    return $self->[VAL];
-}
-
-
-
-#------------------------------------------------------------------------
-# rgb()
-# rgb($r, $g, $b)
-#
-# Convert HSV to RGB, with optional $r, $g, $b arguments.
-#------------------------------------------------------------------------
-
-sub rgb {
-    my ($self, @args) = @_;
-    my $rgb;
-
-    # generate RGB values from current HSV if no arguments provided
-    unless (@args) {
-        my ($h, $s, $v) = @$self;
-        my ($r, $g, $b);
-
-        if ($s == 0) {
-            # TODO: make this truly achromatic
-            @args = ($v) x 3;
-        }
-        else {
-            # normalise saturation from range 0-255 to 0-1
-            $s /= 255;
-
-            $h /= 60;                          ## sector 0 to 5
-            my $i = POSIX::floor( $h );
-            my $f = $h - $i;                   ## factorial part of h
-            my $p = $v * ( 1 - $s );
-            my $q = $v * ( 1 - $s * $f );
-            my $t = $v * ( 1 - $s * ( 1 - $f ) );
-
-            if    ($i == 0) { $r = $v; $g = $t; $b = $p }
-            elsif ($i == 1) { $r = $q; $g = $v; $b = $p }
-            elsif ($i == 2) { $r = $p; $g = $v; $b = $t }
-            elsif ($i == 3) { $r = $p; $g = $q; $b = $v }
-            elsif ($i == 4) { $r = $t; $g = $p; $b = $v }
-            else            { $r = $v; $g = $p; $b = $q }
-
-            @args = map { int } ($r, $g, $b);
-        }
-    }
-
-    return $self->RGB(@args);
-}
-
-
-sub error {
-    my $self = shift;
-    die Template::Exception->new($THROW, join('', @_));
+    my $class   = shift;
+    my $context = shift;
+    $class->SUPER::new(@_);
 }
 
 
@@ -368,15 +160,11 @@ See Template::Plugin::Colour::RGB for further information.
 
 =head1 AUTHOR
 
-Andy Wardley E<lt>abw@cpan.orgE<gt>
-
-=head1 VERSION
-
-$Revision: 6 $
+Andy Wardley E<lt>abw@cpan.orgE<gt>, L<http://wardley.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006 Andy Wardley.  All Rights Reserved.
+Copyright (C) 2006-2012 Andy Wardley.  All Rights Reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

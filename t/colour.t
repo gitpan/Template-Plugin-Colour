@@ -2,268 +2,145 @@
 #
 # t/colour.t
 #
-# Test the Template::Plugin::Colour modules.
+# Test the Template::Colour modules.  Run with -h option for help.
 #
-# Copyright (C) 2006 Andy Wardley.  All Rights Reserved.
+# Copyright (C) 2006-2007 Andy Wardley.  All Rights Reserved.
 #
 # This is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
-#
-# $Id: colour.t 8 2006-02-03 12:07:34Z abw $
 #
 #========================================================================
 
 use strict;
 use warnings;
 use lib qw( ./lib ../lib );
-use Template::Test;
+use Badger::Test
+    debug => 'Template::Colour Template::Colour::RGB Template::Colour::HSV',
+    args  => \@ARGV,
+    tests => 64;
+    
+use Template::Colour;
+use constant Col => 'Template::Colour';
 
-test_expect(\*DATA, undef, { ttv => $Template::VERSION });
+my $orange;
 
-__DATA__
+#-----------------------------------------------------------------------
+# test rgb constructor
+#-----------------------------------------------------------------------
 
--- test --
-[% USE Colour( rgb => '#123456' ) -%]
-col: [% Colour.hex %]
-col: [% Colour.html %]
--- expect --
-col: 123456
-col: #123456
+$orange = Col->new('#ff7f00');
+ok( $orange, 'got orange colour from hex triplet' );
+is( $orange->red(), 255, 'orange red 255' );
+is( $orange->green(), 127, 'orange green 127' );
+is( $orange->blue(), 0, 'orange blue 0' );
 
--- test --
-[% USE rgb = Colour( rgb => '#0066b3' ) -%]
-  red: [% rgb.red %]
-green: [% rgb.green %]
- blue: [% rgb.blue %]
- grey: [% rgb.grey %]
-  red: [% rgb.red(100) %]
-  hex: [% rgb.hex %]
- html: [% rgb.html %]
--- expect --
-  red: 0
-green: 102
- blue: 179
- grey: 84
-  red: 100
-  hex: 6466b3
- html: #6466b3
+$orange = Col->new( rgb => '#fe7e01' );
+ok( $orange, 'got orange colour from hex triplet named param' );
+is( $orange->red(), 254, 'orange red 254' );
+is( $orange->green(), 126, 'orange green 126' );
+is( $orange->blue(), 1, 'orange blue 1' );
 
--- test --
-[% USE hsv = Colour( hsv => [50, 100, 150] ) -%]
-  hue: [% hsv.hue %]
-  sat: [% hsv.sat %] / [% hsv.saturation %]
-  val: [% hsv.val %] / [% hsv.value %]
--- expect --
-  hue: 50
-  sat: 100 / 100
-  val: 150 / 150
+$orange = Col->new( rgb => [253, 125, 2] );
+ok( $orange, 'got orange colour RGB named param' );
+is( $orange->red(), 253, 'orange red 253' );
+is( $orange->green(), 125, 'orange green 125' );
+is( $orange->blue(), 2, 'orange blue 2' );
 
+$orange = Col->new({ rgb => [252, 124, 3] });
+ok( $orange, 'got orange colour RGB param hash' );
+is( $orange->red(), 252, 'orange red 252' );
+is( $orange->green(), 124, 'orange green 124' );
+is( $orange->blue(), 3, 'orange blue 3' );
 
--- test --
--- name sat to rgb --
-[% USE hsv = Colour.HSV(210, 170, 48) -%]
- hsv: [% hsv.join('/') %]
- rgb: [% hsv.rgb.join('/') %]
- hex: [% hsv.rgb.hex %]
--- expect --
- hsv: 210/170/48
- rgb: 16/32/48
- hex: 102030
+$orange = Col->new( red => 251, green => 123, blue => 4 );
+ok( $orange, 'got orange colour RGB named red, green, blue params' );
+is( $orange->red(), 251, 'orange red 251' );
+is( $orange->green(), 123, 'orange green 123' );
+is( $orange->blue(), 4, 'orange blue 4' );
 
--- test --
--- name rgb to sat --
-[% USE rgb = Colour.RGB(16, 32, 48) -%]
- rgb: [% rgb.join('/') %]
- hsv: [% rgb.hsv.join('/') %]
--- expect --
- rgb: 16/32/48
- hsv: 210/170/48
+$orange = Col->RGB( 250, 122, 5 );
+ok( $orange, 'got orange from RGB method' );
+is( $orange->red(), 250, 'orange red 250' );
+is( $orange->green(), 122, 'orange green 122' );
+is( $orange->blue(), 5, 'orange blue 5' );
 
--- test --
-[% USE rgb = Colour('#102030') -%]
- src: [% rgb.red %] / [% rgb.green %] / [% rgb.blue %]
-[% hsv = rgb.hsv; rgb = hsv.rgb -%]
- rgb: [% rgb.red %] / [% rgb.green %] / [% rgb.blue %]
- hsv: [% hsv.hue %] / [% hsv.sat %] / [% hsv.val %]
- rgb.join: [% rgb.join(', ') %]
- hsv.join: [% hsv.join(', ') %]
--- expect --
- src: 16 / 32 / 48
- rgb: 16 / 32 / 48
- hsv: 210 / 170 / 48
- rgb.join: 16, 32, 48
- hsv.join: 210, 170, 48
+#-----------------------------------------------------------------------
+# test HSV constructor
+#-----------------------------------------------------------------------
+
+$orange = Col->new('#FF7F00')->hsv;
+is( $orange->hue, 30, 'orange hue is 30' );
+is( $orange->percent, '30/100%/100%', 'orange H/S/V percent' );
+
+$orange = Col->new( hsv => [24, 255, 255] );
+ok( $orange, 'got orange from hsv' );
+is( $orange->hue(), 24, 'orange hue 24' );
+is( $orange->sat(), 255, 'orange sat 255' );
+is( $orange->val(), 255, 'orange val 255' );
+
+$orange = Col->new( hue => 25, sat => 254, val => 253 );
+ok( $orange, 'got orange from hue, etc' );
+is( $orange->hue(), 25, 'orange hue 25' );
+is( $orange->sat(), 254, 'orange sat 254' );
+is( $orange->val(), 253, 'orange val 253' );
 
 
 
--- test --
-[% USE rgb = Colour('#007f3f'); hsv = rgb.hsv -%]
- rgb: [% rgb.red %] / [% rgb.green %] / [% rgb.blue %]
- hsv: [% hsv.hue %] / [% hsv.sat %] / [% hsv.val %]
--- expect --
- rgb: 0 / 127 / 63
- hsv: 150 / 255 / 127
+#-----------------------------------------------------------------------
+# test copy constructor
+#-----------------------------------------------------------------------
+
+my $copy = Col->new($orange);
+ok( $orange, 'got orange from copy constructor' );
+is( $orange->hue(), 25, 'orange copy hue 25' );
+is( $orange->sat(), 254, 'orange copy sat 254' );
+is( $orange->val(), 253, 'orange copy val 253' );
+$orange->hue(30);
+is( $orange->hue(), 30, 'set orange hue to 30' );
+is( $copy->hue(), 25, 'copy still has hue set to 25' );
+
+$orange = Col->RGB( 249, 121, 6 );
+$copy = Col->new($orange);
+ok( $orange, 'got orange from RGB copy constructor' );
+is( $orange->red(), 249, 'orange copy red 249' );
+is( $orange->green(), 121, 'orange copy green sat 121' );
+is( $orange->blue(), 6, 'orange copy blue 6' );
+$orange->red(220);
+is( $orange->red(), 220, 'set orange red to 220' );
+is( $copy->red(), 249, 'copy still has red set to 249' );
+
+isnt( $copy, $orange, 'different objects again' );
 
 
--- test -- 
-[% USE col = Colour(17, 34, 51); "col: $col.hex" %]
--- expect --
-col: 112233
+#-----------------------------------------------------------------------
+# test colour range
+#-----------------------------------------------------------------------
 
--- test -- 
-[% USE col = Colour('112233'); "col: $col.hex" %]
--- expect --
-col: 112233
+$orange = Col->RGB('#ff8800');
+my $range = $orange->range(7, '#8811EE');
+is( $range->[0]->HTML, '#FF8800', 'range 0' );
+is( $range->[1]->HTML, '#EE7722', 'range 1' );
+is( $range->[2]->HTML, '#DD6644', 'range 2' );
+is( $range->[3]->HTML, '#CC5566', 'range 3' );
+is( $range->[4]->HTML, '#BB4488', 'range 4' );
+is( $range->[5]->HTML, '#AA33AA', 'range 5' );
+is( $range->[6]->HTML, '#9922CC', 'range 6' );
+is( $range->[7]->HTML, '#8811EE', 'range 7' );
 
--- test -- 
-[% USE col = Colour(17, 34, 51) -%]
-[% col.0 %]/[% col.1 %]/[% col.2 %]
--- expect --
--- process --
-[% IF ttv.match('^2\.14\w') or ttv > 2.14 -%]
-17/34/51
-[% ELSE -%]
-//
-[% END %]
+#-----------------------------------------------------------------------
+# test colour scheme
+#-----------------------------------------------------------------------
 
--- test --
--- name Colour exception --
-[% TRY;
-     USE Colour(10, 20, 30, 40, 50, "I don't know", "what I am doing");
-   CATCH;
-     error;
-   END
-%]
--- expect --
-Colour.RGB error - invalid rgb parameter(s): 10, 20, 30, 40, 50, I don't know, what I am doing
-
--- test --
--- name orange --
-[% USE Colour;
-   Colour.RGB('#FF7F00').hsv.join('/')
-%]
--- expect --
-30/255/255
-
--- test --
--- name orange --
-[% USE Colour;
-   Colour.HSV(30, 255, 255).rgb.hex
-%]
--- expect --
-ff7f00
+$orange = Col->RGB('#ff8800');
+my $scheme = $orange->scheme();
+is( $scheme->{ black    }, '#000000', 'black is black' );
+is( $scheme->{ darkest  }, '#3F2200', 'darkest orange' );
+is( $scheme->{ darker   }, '#7F4400', 'darker orange' );
+is( $scheme->{ dark     }, '#BF6600', 'dark orange' );
+is( $scheme->{ mid      }, $orange, 'mid is orange' );
+is( $scheme->{ light    }, '#FFA53F', 'light orange' );
+is( $scheme->{ lighter  }, '#FFC37F', 'lighter orange' );
+is( $scheme->{ lightest }, '#FFE1BF', 'lightest orange' );
+is( $scheme->{ white    }, '#FFFFFF', 'white is white' );
 
 
--- test --
--- name none more black hsv --
-[% USE hsv = Colour.HSV(0, 0, 0) -%]
-hsv: [% hsv.join('/') %]
-rgb: [% hsv.rgb.join('/') %]
-hex: [% hsv.rgb.hex %]
--- expect --
-hsv: 0/0/0
-rgb: 0/0/0
-hex: 000000
-
--- test --
--- name none more black rgb --
-[% USE col = Colour.RGB(0, 0, 0) -%]
-hex: [% col.hex %]
-hsv: [% col.hsv.join('/') %]
-rgb: [% col.hsv.rgb.join('/') %]
-hex: [% col.hsv.rgb.hex %]
--- expect --
-hex: 000000
-hsv: 0/0/0
-rgb: 0/0/0
-hex: 000000
-
--- test --
--- name red and orange --
-[% USE Colour;
-   red    = Colour.RGB('#C00');
-   orange = Colour.HSV(30, 255, 255);
-
-   FOREACH col IN [red, orange] -%]
-<span style="background-color: [% col.rgb.html %];">
-  Sample Colour: [% col.rgb.html %]
-</span>
-[% END %]
--- expect --
-<span style="background-color: #cc0000;">
-  Sample Colour: #cc0000
-</span>
-<span style="background-color: #ff7f00;">
-  Sample Colour: #ff7f00
-</span>
-
--- test --
--- name I like orange --
-[% USE Colour;
-   orange = Colour.HSV(30, 255, 255);
--%]
-<p style="color: [% orange.rgb.HTML %]">
-   I like orange!
-</p>
--- expect --
-<p style="color: #FF7F00">
-   I like orange!
-</p>
-
-
--- test --
-[% USE Colour;
-   orange = Colour.HSV(30, 255, 255);
-   light  = orange.copy( sat => 127 );   # FFBF80
-   dark   = orange.copy( val => 127 );   # 7F3F00
-   contrast = orange.copy( hue => 210 );   # 7F3F00
--%]
-orange: [% orange.join('/') %]  [% orange.rgb.HTML %]
- light: [% light.join('/') %]  [% light.rgb.HTML %]
-  dark: [% dark.join('/') %]  [% dark.rgb.HTML %]
-  cont: [% contrast.join('/') %]  [% contrast.rgb.HTML %]
--- expect --
-orange: 30/255/255  #FF7F00
- light: 30/127/255  #FFBF80
-  dark: 30/255/127  #7F3F00
-  cont: 210/255/255  #007FFF
-
-
--- stop --
--- test --
--- name there and back again --
-#------------------------------------------------------------------------
-# NOTE: This test fails because the algorithm used to convert 
-#       between RGB and HSV is not symmetrical.  That is, 
-#       going RGB->HSV->RGB doesn not always return the colour
-#       that you started with.  This is because we round components
-#       to integers rather than floating point values.
-#------------------------------------------------------------------------
-
-[% USE Colour;
-   numbers = [0, 15, 16, 47, 48, 63, 64, 127, 128, 191, 192, 255];
-   numbers = [0, 63, 127, 255];
-   failed = 0;
-   FOREACH red IN numbers;
-     FOREACH green IN numbers;
-       FOREACH blue IN numbers;
-         rgb = Colour.RGB(red, green, blue);
-         hsv = rgb.hsv;
-         out = hsv.rgb;
-         hex = hsv.rgb.hex;
-         UNLESS rgb.hex == hex; failed = 
-           failed + 1;
-           FILTER stderr;%]
-[RGB:[% rgb.html %]] => [HSV:[% hsv.join('/') %]] => [RGB:[% hsv.rgb.html %]]
-[%-        END;
-         END;
-       END;
-     END;
-   END
-%]
-[% failed ? "$failed tests failed" : 'all ok' %]
--- expect --
-all ok
-
-
-       

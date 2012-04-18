@@ -1,44 +1,15 @@
-#============================================================= -*-Perl-*-
-#
-# Template::Plugin::Colour
-#
-# DESCRIPTION
-#   Template Toolkit plugin for representing and manipulating colours
-#   via the RGB and HSV colour spaces. 
-#
-# AUTHOR
-#   Andy Wardley   <abw@cpan.org>
-#
-# COPYRIGHT
-#   Copyright (C) 2006 Andy Wardley.  All Rights Reserved.
-#
-#   This module is free software; you can redistribute it and/or
-#   modify it under the same terms as Perl itself.
-#
-# REVISION
-#   $Revision: 9 $
-#
-#============================================================================
-
 package Template::Plugin::Colour;
 
-use strict;
-use warnings;
-use base 'Template::Plugin';
-use Template::Plugin::Colour::RGB;
-use Template::Plugin::Colour::HSV;
-use POSIX 'floor';
-
-our $VERSION = 0.01;
-our $PLUGINS = {
-    RGB => 'Template::Plugin::Colour::RGB',
-    HSV => 'Template::Plugin::Colour::HSV',
-};
+use Template::Colour::Class
+    version   => 2.10,
+    debug     => 0,
+    base      => 'Template::Plugin Template::Colour',
+    constants => 'HASH';
 
 
 sub new {
     my ($class, $context, @args) = @_;;
-    my $params = (@args && ref $args[-1] eq 'HASH') ? $args[-1] : { };
+    my $params = (@args && ref $args[-1] eq HASH) ? $args[-1] : { };
     my $space;
 
     # first argument can be 'rgb' or 'hsv' to indicate argument(s) type
@@ -55,58 +26,13 @@ sub new {
 }
 
 
-sub RGB {
-    my $self = shift;
-    return $PLUGINS->{RGB}->new('no context', @_);
-}
-
-
-sub HSV {
-    my $self = shift;
-    return $PLUGINS->{HSV}->new('no context', @_);
-}
-
-    
-
-#------------------------------------------------------------------------
-# min($r, $g, $b)
-# 
-# Returns minimum value from arguments, used for colour space conversion.
-#------------------------------------------------------------------------
-
-sub min { 
-    my $self = shift;
-    my $min  = shift; 
-    foreach my $v (@_) {
-        $min = $v if $v < $min;
-    }
-    return $min; 
-}
-
-
-#------------------------------------------------------------------------
-# max($r, $g, $b)
-# 
-# Returns maximum value from arguments, used for colour space conversion.
-#------------------------------------------------------------------------
-
-sub max { 
-    my $self = shift;
-    my $max  = shift; 
-    foreach my $v (@_) {
-        $max = $v if $v > $max;
-    }
-    return $max; 
-}
-
-
 1;
 
 __END__
 
 =head1 NAME
 
-Template::Plugin::Colo(u)r - Template plugin for colour manipulation
+Template::Plugin::Colour - Template plugin for colour manipulation
 
 =head1 SYNOPSIS
 
@@ -144,12 +70,12 @@ This Template Toolkit plugin module allows you to define and
 manipulate colours using the RGB (red, green, blue) and HSV
 (hue, saturation, value) colour spaces.
 
-It delegates to the Template::Plugin::Colour::RGB and
-Template::Plugin::Colour::HSV modules to do all the hard work.
+It delegates to the L<Template::Plugin::Colour::RGB> and
+L<Template::Plugin::Colour::HSV> modules to do all the hard work.
 
 As a convenience to our American friends and other international users
-who spell 'Colour' as 'Color', all the 'Colour' plugin modules have
-'Color' equivalents.  So you can write either:
+who spell 'C<Colour>' as 'C<Color>', all the 'C<Colour>' plugin modules have
+'C<Color>' equivalents.  So you can write either:
 
     [% USE Colour %]
 
@@ -261,25 +187,27 @@ How much more black could this be?
 
 The answer is none. None more black.
 
-=head1 AUTHOR
-
-Andy Wardley E<lt>abw@cpan.orgE<gt> using algorithms from "Computer
-Graphics -- Principles and Practice", Foley et al, 1996, p. 592-593.
-
 =head1 VERSION
 
-This is version 0.01 of the Template::Plugin::Colour module set.
+This is version 0.04 of the Template::Plugin::Colour module set.
+
+=head1 AUTHOR
+
+Andy Wardley E<lt>abw@cpan.orgE<gt>, L<http://wardley.org>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006 Andy Wardley.  All Rights Reserved.
+Copyright (C) 2006-2012 Andy Wardley.  All Rights Reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
+=head1 ACKNOWLEDGEMENTS
+
+Written using algorithms from "Computer Graphics -- Principles and Practice", 
+Foley et al, 1996, p. 592-593.
 
 =head1 SEE ALSO
 
 L<Template::Plugin::Colour::RGB>, L<Template::Plugin::Colour::HSV>,
 L<Template::Plugin>
-
-

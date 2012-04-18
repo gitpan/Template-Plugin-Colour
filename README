@@ -1,5 +1,5 @@
 NAME
-    Template::Plugin::Colo(u)r - Template plugin for colour manipulation
+    Template::Plugin::Colour - Template plugin for colour manipulation
 
 SYNOPSIS
         # long or short hex triplets, with or without '#'
@@ -39,8 +39,8 @@ DESCRIPTION
     Template::Plugin::Colour::HSV modules to do all the hard work.
 
     As a convenience to our American friends and other international users
-    who spell 'Colour' as 'Color', all the 'Colour' plugin modules have
-    'Color' equivalents. So you can write either:
+    who spell '"Colour"' as '"Color"', all the '"Colour"' plugin modules
+    have '"Color"' equivalents. So you can write either:
 
         [% USE Colour %]
 
@@ -142,18 +142,21 @@ EXAMPLES
 
     The answer is none. None more black.
 
-AUTHOR
-    Andy Wardley <abw@cpan.org> using algorithms from "Computer Graphics --
-    Principles and Practice", Foley et al, 1996, p. 592-593.
-
 VERSION
-    This is version 0.01 of the Template::Plugin::Colour module set.
+    This is version 0.04 of the Template::Plugin::Colour module set.
+
+AUTHOR
+    Andy Wardley <abw@cpan.org>, <http://wardley.org>
 
 COPYRIGHT
-    Copyright (C) 2006 Andy Wardley. All Rights Reserved.
+    Copyright (C) 2006-2012 Andy Wardley. All Rights Reserved.
 
     This module is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
+
+ACKNOWLEDGEMENTS
+    Written using algorithms from "Computer Graphics -- Principles and
+    Practice", Foley et al, 1996, p. 592-593.
 
 SEE ALSO
     Template::Plugin::Colour::RGB, Template::Plugin::Colour::HSV,
