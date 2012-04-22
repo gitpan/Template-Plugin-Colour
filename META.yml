@@ -20,4 +20,4 @@ no_index:
 requires:
   Badger: 0.09
   Template: 2.2
-version: 0.04
+version: 0.05
